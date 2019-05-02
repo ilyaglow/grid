@@ -13,10 +13,28 @@ if [[ ! "$PKG_NAME" =~ ^[a-zA-Z0-9_-]+$ ]]; then
     exit 1
 fi
 
-docker build -t "$PKG_NAME" \
-             -f template.Dockerfile \
-             --build-arg "REPO=$PKG_PATH" \
-             .
+IFS='' read -r -d '' dockerfile <<"EOF"
+FROM golang:alpine
+LABEL maintainer "Ilya Glotov <ilya@ilyaglotov.com>"
+
+ARG REPO
+
+RUN apk --update --no-cache add git \
+  && go get -ldflags="-s -w" $REPO \
+  && apk del git \
+  && adduser -D app
+
+FROM alpine:latest
+COPY --from=0 /go/bin/* /bin/
+COPY --from=0 /etc/passwd /etc/passwd
+
+USER app
+EOF
+
+<<< "$dockerfile" \
+    docker build -t "$PKG_NAME" \
+                 --build-arg "REPO=$PKG_PATH" \
+                 -f - .
 
 docker run -it \
            --rm \
