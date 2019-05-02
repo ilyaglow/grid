@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+PKG_PATH="$1"
+PKG_NAME=${PKG_PATH##*/}
+
+if [[ -z "$PKG_NAME" ]]; then
+    echo "incorrect package path: $PKG_PATH"
+    exit 1
+fi
+
+if [[ ! "$PKG_NAME" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+    echo "incorrect package name: $PKG_NAME"
+    exit 1
+fi
+
+docker build -t "$PKG_NAME" \
+             -f template.Dockerfile \
+             --build-arg "REPO=$PKG_PATH" \
+             .
+
+docker run -it \
+           --rm \
+           --entrypoint=/bin/${PKG_NAME} ${PKG_NAME} ${@:2}
