@@ -32,10 +32,9 @@ USER app
 EOF
 
 <<< "$dockerfile" \
-    docker build -t "$PKG_NAME" \
-                 --build-arg "REPO=$PKG_PATH" \
-                 -f - .
-
-docker run -it \
-           --rm \
-           --entrypoint=/bin/${PKG_NAME} ${PKG_NAME} ${@:2}
+  docker build -t "$PKG_NAME" \
+               --build-arg "REPO=$PKG_PATH" \
+               -f - . \
+  && docker run -it \
+                --rm \
+                --entrypoint=/bin/"$PKG_NAME" "$PKG_NAME" ${@:2}
