@@ -15,7 +15,6 @@ fi
 
 IFS='' read -r -d '' dockerfile <<"EOF"
 FROM golang:alpine
-LABEL maintainer "Ilya Glotov <ilya@ilyaglotov.com>"
 
 ARG REPO
 
@@ -25,10 +24,15 @@ RUN apk --update --no-cache add git \
   && adduser -D app
 
 FROM alpine:latest
+LABEL maintainer "Ilya Glotov <ilya@ilyaglotov.com>"
+
 COPY --from=0 /go/bin/* /bin/
-COPY --from=0 /etc/passwd /etc/passwd
+
+RUN adduser -D app
 
 USER app
+
+WORKDIR /home/app
 EOF
 
 <<< "$dockerfile" \
@@ -37,4 +41,5 @@ EOF
                -f - . \
   && docker run -it \
                 --rm \
+                -v $PWD:/home/app \
                 --entrypoint=/bin/"$PKG_NAME" "$PKG_NAME" ${@:2}
