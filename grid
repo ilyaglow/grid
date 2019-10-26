@@ -19,6 +19,7 @@ FROM golang:alpine
 ARG REPO
 
 RUN apk --update --no-cache add git \
+                                ca-certificates \
   && go get -ldflags="-s -w" $REPO \
   && apk del git \
   && adduser -D app
@@ -27,6 +28,8 @@ FROM alpine:latest
 LABEL maintainer "Ilya Glotov <ilya@ilyaglotov.com>"
 
 COPY --from=0 /go/bin/* /bin/
+COPY --from=0 /etc/ssl/certs/ca-certificates.crt \
+     /etc/ssl/certs/ca-certificates.crt
 
 RUN adduser -D app
 
